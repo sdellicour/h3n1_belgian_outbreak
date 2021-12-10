@@ -15,7 +15,6 @@
 # 15. Investigating the impact of wind direction on dispersal direction of viral lineages
 # 16. Investigating the correlation between patristic distances and several covariates
 # 17. Analysis of the phylogenetic signal associated with several covariates
-# 18. Investigating the impact of herd density and capacity on H3N1 lineages dispersal
 
 library(adephylo)
 library(diagram)
@@ -1118,102 +1117,4 @@ for (i in 1:length(variableNames))
 		# Satscan: K = 1.46, 95% HPD [0.70-2.32], BF = >999
 		# Transports: K = 0.81, 95% HPD [0.36-1.37], BF = 199
 		# Human movements: K = 0.76, 95% HPD [0.51-1.01], BF = >999
-
-# 18. Investigating the impact of herd density and capacity on H3N1 lineages dispersal
-
-data = read.csv("Belgium_herd_data.csv", head=T, sep=";")
-rast1 = raster("WorldPop_pop_raster.tif"); rast1[!is.na(rast1[])] = 0
-rast1 = aggregate(rast1, 30); rast2 = rast1; rast2[!is.na(rast2)] = 0
-points = data.frame(x=as.numeric(data[,"Longitude"]), y=as.numeric(data[,"Latitude"]))
-counts = table(cellFromXY(rast2, points))
-rast2[as.numeric(names(counts))] = counts
-rast3 = rast1; rast3[!is.na(rast3)] = 0
-for (i in 1:dim(data)[1])
-	{
-		if ((!is.na(cellFromXY(rast2, points[i,])))&(!is.na(data[i,"Capacity"])))
-			{
-				rast3[cellFromXY(rast2, points[i,])] = rast3[cellFromXY(rast3, points[i,])]+data[i,"Capacity"]
-			}
-	}
-localTreesDirectory = "Analysis_2_extractions"; rasts = list(); envVariableNames = list()
-rasts[[1]] = rast2; envVariableNames[[1]] = "farm_density"
-rasts[[2]] = rast3; envVariableNames[[2]] = "cumulated_max_capacity"
-municipalities = shapefile("Shapefile_municipalities/Shapefile_post_codes.shp")
-for (i in 1:nberOfExtractionFiles)
-	{
-		tab = read.csv(paste0(localTreesDirectory,"/TreeExtractions_",i,".csv"), head=T)
-		points1 = data.frame(lon=tab[,"startLon"], lat=tab[,"startLat"]); coordinates(points1) = c("lon","lat")
-		points2 = data.frame(lon=tab[,"endLon"], lat=tab[,"endLat"]); coordinates(points2) = c("lon","lat")
-		proj4string(points1) = crs(municipalities); points1 = spTransform(points1, CRS("+init=epsg:4326"))
-		proj4string(points2) = crs(municipalities); points2 = spTransform(points2, CRS("+init=epsg:4326"))
-		tab[,c("startLon","startLat")] = points1@coords; tab[,c("endLon","endLat")] = points2@coords
-		write.csv(tab, paste0("Analysis_2_ext_WGS84/TreeExtractions_",i,".csv"), quote=F, row.names=F)
-	}
-
-	# 18.1. Investigating the impact of herd density and capacity on H3N1 lineages dispersal velocity
-
-localTreesDirectory = "Analysis_2_ext_WGS84"; envVariables = rasts; randomProcedure = 3; nberOfCores = 1
-treesRandomisation(localTreesDirectory, nberOfExtractionFiles, envVariables, randomProcedure, nberOfCores)
-for (i in 1:nberOfExtractionFiles)
-	{
-		obs = read.csv(paste0(localTreesDirectory,"/TreeExtractions_",i,".csv"), header=T)
-		ran = read.csv(paste0(localTreesDirectory,"/TreeRandomisation_",i,".csv"), header=T)
-		envValues_obs = matrix(nrow=dim(obs)[1], ncol=length(envVariables))
-		envValues_ran = matrix(nrow=dim(ran)[1], ncol=length(envVariables))
-		colnames(envValues_obs) = envVariableNames; colnames(envValues_ran) = envVariableNames
-		for (j in 1:length(envVariables))
-			{
-				envValues_obs[,j] = raster::extract(envVariables[[j]], SpatialPoints(obs[,c("endLon","endLat")]))
-				envValues_ran[,j] = raster::extract(envVariables[[j]], SpatialPoints(ran[,c("endLon","endLat")]))
-			}
-		write.csv(envValues_obs, paste0(localTreesDirectory,"/EnvValues_obs_",i,".csv"), row.names=F, quote=F)
-		write.csv(envValues_ran, paste0(localTreesDirectory,"/EnvValues_ran_",i,".csv"), row.names=F, quote=F)
-	}
-BFs = matrix(nrow=length(envVariables), ncol=2)
-row.names(BFs) = envVariableNames; colnames(BFs) = c("lower","higher")
-meanEnvValues_obs_list = list(); meanEnvValues_ran_list = list()
-for (i in 1:length(envVariables))
-	{
-		lowerEnvValues = 0; meanEnvValues_obs_list = list(); meanEnvValues_ran_list = list()
-		meanEnvValues_obs = rep(NA, nberOfExtractionFiles); meanEnvValues_ran = rep(NA, nberOfExtractionFiles)
-		for (j in 1:nberOfExtractionFiles)
-			{
-				meanEnvValues_obs[j] = mean(read.csv(paste0(localTreesDirectory,"/EnvValues_obs_",j,".csv"))[,gsub(".asc","",gsub("-",".",envVariableNames[i]))], na.rm=T)
-				meanEnvValues_ran[j] = mean(read.csv(paste0(localTreesDirectory,"/EnvValues_ran_",j,".csv"))[,gsub(".asc","",gsub("-",".",envVariableNames[i]))], na.rm=T)
-				if (meanEnvValues_obs[j] < meanEnvValues_ran[j]) lowerEnvValues = lowerEnvValues+1				
-			}
-		p = lowerEnvValues/nberOfExtractionFiles; BFs[i,"lower"] = round((p/(1-p))/(0.5/(1-0.5)),1)
-		p = (1-(lowerEnvValues/nberOfExtractionFiles)); BFs[i,"higher"] = round((p/(1-p))/(0.5/(1-0.5)),1)
-		meanEnvValues_obs_list[[i]] = meanEnvValues_obs; meanEnvValues_ran_list[[i]] = meanEnvValues_ran
-	}
-write.csv(BFs, paste0("H3N1_disp_locations_NEW.csv"), quote=F)
-
-	# 18.2. Investigating the impact of herd density and capacity on H3N1 lineages dispersal velocity
-	
-nberOfExtractionFiles = 1000; nberOfRandomisations = 1; randomProcedure = 3
-showingPlots = FALSE; nberOfCores = 1; OS = "Unix"; randomisations = FALSE; fourCells = FALSE
-envVariables = list(); resistances = list(); avgResistances = list(); c = 0
-for (k in c(10,100,1000))
-	{
-		for (i in 1:length(envVariableNames))
-			{
-				c = c+1; rast = rasts[[i]]; rast[rast[]<0] = 0; M = max(rast[], na.rm=T)
-				rast[] = (rast[]*(k/M))+1; names(rast) = paste(envVariableNames[i],"_k",k,sep="")
-				envVariables[[c]] = rast; names(envVariables[[c]]) = paste(envVariableNames[i],"_k",k,sep="")
-				resistances[[c]] = TRUE; avgResistances[[c]] = TRUE
-			}
-		for (i in 1:length(envVariableNames))
-			{
-				c = c+1; rast = rasts[[i]]; rast[rast[]<0] = 0; M = max(rast[], na.rm=T)
-				rast[] = (rast[]*(k/M))+1; names(rast) = paste(envVariableNames[i],"_k",k,sep="")
-				envVariables[[c]] = rast; names(envVariables[[c]]) = paste(envVariableNames[i],"_k",k,sep="")
-				resistances[[c]] = FALSE; avgResistances[[c]] = FALSE
-			}
-	}
-localTreesDirectory = "Analysis_2_ext_WGS84"; pathModel = 2; outputName = paste0("H3N1_LC")
-spreadFactors(localTreesDirectory,nberOfExtractionFiles,envVariables,pathModel,resistances,avgResistances,fourCells,
-			  nberOfRandomisations,randomProcedure,outputName,showingPlots,nberOfCores,OS,simulations=F,randomisations=F)
-localTreesDirectory = "Analysis_2_ext_WGS84"; pathModel = 3; outputName = paste0("H3N1_CS")
-spreadFactors(localTreesDirectory,nberOfExtractionFiles,envVariables,pathModel,resistances,avgResistances,fourCells,
-			  nberOfRandomisations,randomProcedure,outputName,showingPlots,nberOfCores,OS,simulations=F,randomisations=F)	
 
