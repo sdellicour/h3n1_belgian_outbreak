@@ -1,0 +1,24 @@
+Réunion à Sciensano :
+- NGS (Illumina)
+- 1° cas en janvier
+- 82 cas dans des fermes commerciales (pas dans le "hobby")
+- IVPI de 0.28 (fin mai) --> pas HPAI
+- 13 ou 14 souches déjà séquencées
+- BMDS pour tester l'impact du transport d'individus (fréquence, timing)?
+
+Wind data de Sciensano (Géraldine) :
+- la vitesse est en m/s
+- les données de direction du vent sont bien une mesure angulaire à 360° avec Nord = 360 (le vent vient de là), 90 = vent venant de l’est, etc. Quelques petites spécificités quand même. Pour les stations de Middelkerke et Koksijde (à la côte), si tu as une direction du vent = 99, ça veut dire que le vent est variable et qu’aucune direction précise n’a pu être calculée. Si la valeur = 0, pas de vent. Pour le reste, c’est comme les stations terrestres (Beitem et Melle), pour lesquelles  le calcul est plus précis, et il y a toujours une direction du vent (pas de valeur équivalente au 99 des stations de la côte)
+- explications ici : https://www.meteo.be/en/about-rmi/observation-network/automatische-weerstations
+
+Dates clés fournies par Géraldine :
+- 05-04-2019 : confirmation d’un cas de grippe aviaire H3N1 dans une exploitation de poules pondeuses en parcours extérieur à Poeke (Oost-Vlaanderen - OVL). C’est le foyer #1.
+- 17-04-2019 : communication écrite de l’Afsca vers le secteur de la volaille pour les avertir de la présence de grippe aviaire en West- (WVL) et OVL, et sur la nécessité de mettre une vigilance accrue en place. Pas de mesures officielles instaurées.
+- 23-04-2019 : obligation pour les camions du clos d’équarrissage de passer dans les fermes infectées pour collecter des cadavres en dernier lieu.
+- 26-04-2019 : communication de la Belgian Feed Association (BFA) vers ses membres pour la mise en place de recommandations de biosécurité à respecter sur leurs camions et leur matériel.
+- 16-05-2019 : publication d’un Arrêté Ministériel de l’Afsca portant des mesures d’urgence sur pour empêcher la dispersion du virus de l'influenza aviaire de type H3 à de premières mesures un peu contraignantes (transport 1-1, désinfection obligatoire des véhicules, personnel entrant dans les fermes limité). Pas d’abattage obligatoire. Mais c’est la première manifestation d’une intervention de l’Autorité compétente.
+- 06-06-2019 : Arrêté ministériel portant des mesures d'urgence pour empêcher la dispersion du virus de l'influenza de type H3 à mesures plus strictes, calquées sur un variant hautement pathogène : abattage obligatoire des volailles et œufs infectés (mais quand ils veulent : pas de délai particulier), interdiction de déplacement (sauf pour l’abattoir), désinfection obligatoire des stalles et matériel infectés après abattage.
+- 04-07-2019 : Arrêté royal relatif à la lutte contre l'influenza virus du type H3 chez les volailles. à obligation d’abattage endéans les 21 jours après confirmation du virus H3N1 dans une exploitation et surtout, droit aux indemnités du Fonds Sanitaire (= sorte de caisse de cotisation fédérale pour les éleveurs) dans le cas d’un abattage d’urgence dû au virus. Note : les éleveurs ont dû être informés de ce droit aux indemnités sûrement quelques jours avant cette date.
+- 19-07-2019 : dernier cas de grippe aviaire H3N1 (foyer #82) détecté à Kanegem (WVL)
+
+Dates sélectionnées comme "cut-off" (conseil de Géraldine) : 16-05, 06-06, et 04-07-2019

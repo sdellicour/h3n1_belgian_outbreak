@@ -1,0 +1,14 @@
+BFs_deltaR2_randomisation_1
+null_raster	NA
+farm_density_k10_R	1.7933
+cumulated_max_capacity_k10_R	1.2173
+farm_density_k10_C	2.1056
+cumulated_max_capacity_k10_C	2.9683
+farm_density_k100_R	2.125
+cumulated_max_capacity_k100_R	0.3004
+farm_density_k100_C	1.2523
+cumulated_max_capacity_k100_C	1.8169
+farm_density_k1000_R	2.6496
+cumulated_max_capacity_k1000_R	0.4903
+farm_density_k1000_C	1.3697
+cumulated_max_capacity_k1000_C	1.0534
