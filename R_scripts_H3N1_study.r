@@ -15,6 +15,7 @@
 # 15. Investigating the impact of wind direction on dispersal direction of viral lineages
 # 16. Investigating the correlation between patristic distances and several covariates
 # 17. Analysis of the phylogenetic signal associated with several covariates
+# 18. Investigating the impact of herd density and capacity on H3N1 lineages dispersal
 
 library(adephylo)
 library(diagram)
@@ -408,6 +409,7 @@ for (i in dim(mcc)[1]:1)
 				points(mcc[i,"startLon"], mcc[i,"startLat"], pch=1, col="gray30", lwd=0.2, cex=0.7)
 			}
 	}
+rect(580000, 550000, 630000, 550000, 0.1, xpd=T, lwd=0.2) # 50 km scale
 rect(530000, 650000, 610000, 730000, lwd=0.2, col=NA, border="gray30")
 rast = raster(matrix(nrow=1, ncol=2)); rast[1] = min(mcc[,"startYear"]); rast[2] = max(mcc[,"endYear"])
 index1 = round((((rast[1]-minYear)/(maxYear-minYear))*200)+1); index2 = round((((rast[2]-minYear)/(maxYear-minYear))*200)+1)
@@ -671,7 +673,7 @@ for (i in 1:nberOfExtractionFiles)
 	}
 metadata = read.table("Analysis_2_141220.txt", head=T)
 mostRecentSamplingDatum = max(decimal_date(ymd(metadata[,"collection_date"])))
-distance_threshold = 1000; cutOffs = c(mostRecentSamplingDatum+1) # to get the BF for the entire period
+distance_threshold = 10000; cutOffs = c(mostRecentSamplingDatum+1) # to get the BF for the entire period
 cutOffs = c(decimal_date(dmy(c("26-04-2019","16-05-2019"))), mostRecentSamplingDatum+1)
 for (h in 1:length(cutOffs))
 	{
@@ -694,8 +696,8 @@ for (h in 1:length(cutOffs))
 				for (j in 1:dim(tab)[1])
 					{
 						geoDistance = sqrt(((tab[j,"endLon"]-tab[j,"startLon"])^2)+((tab[j,"endLat"]-tab[j,"startLat"])^2))
-						if (geoDistance < distance_threshold)
-						# if (geoDistance > distance_threshold)
+						# if (geoDistance < distance_threshold)
+						if (geoDistance > distance_threshold)
 							{
 								values1[j,1] = angle2(tab[j,"startLon"],tab[j,"startLat"],tab[j,"endLon"],tab[j,"endLat"])
 								values1[j,2] = values1[j,1]*(geoDistance/tab[j,"length"])
@@ -721,6 +723,7 @@ for (h in 1:length(cutOffs))
 				for (j in 1:dim(tab)[1])
 					{
 						geoDistance = sqrt(((tab[j,"endLon"]-tab[j,"startLon"])^2)+((tab[j,"endLat"]-tab[j,"startLat"])^2))
+						# if (geoDistance < distance_threshold)
 						if (geoDistance > distance_threshold)
 							{
 								values1[j,1] = angle2(tab[j,"startLon"],tab[j,"startLat"],tab[j,"endLon"],tab[j,"endLat"])
@@ -743,7 +746,10 @@ for (h in 1:length(cutOffs))
 		p = sum((differencesM_ran-differencesM_obs)>0, na.rm=T)/length(differencesM_obs)
 		BF = (p/(1-p))/(0.5/(1-0.5)); cat("Period ",h,"  -  BF = ",round(BF,2),"\n",sep="")
 	}
-		# BF with cut-off distance < 1000:  1.36 (and for the 3 time periods: 0.86, 1.00, 0.94)
+		# BF with cut-off distance < 1000:  1.02 (and for the 3 time periods: 1.13, 0.83, 0.95)
+		# BF with cut-off distance < 2000:  1.17 (and for the 3 time periods: 1.09, 0.94, 0.97)
+		# BF with cut-off distance < 5000:  1.26 (and for the 3 time periods: 1.17, 0.96, 1.06)
+		# BF with cut-off distance < 10000: 1.30 (and for the 3 time periods: 1.18, 0.94, 1.04)	
 		# BF with cut-off distance > 1000:  2.47 (and for the 3 time periods: 2.09, 1.04, 1.12)
 		# BF with cut-off distance > 2000:  2.76 (and for the 3 time periods: 2.62, 0.84, 1.32)
 		# BF with cut-off distance > 5000:  3.08 (and for the 3 time periods: 3.33, 0.67, 1.04)
@@ -804,7 +810,7 @@ for (i in 1:length(matrice_names))
 		# - transports (symmetric matrix, binary variable): transports (feed companies, manure and/or Rendac; "1") or not ("0") between farms
 		# - SatSQan (symmetric matrix, binary variable): no connection with the farm in any cluster ("0"), connection with this farm in the same cluster ("1")
 
-	# 17.1. Univariate analyses (Mantel tests)
+	# 16.1. Univariate analyses (Mantel tests)
 	
 mantel_tests_r = matrix(nrow=length(trees), ncol=length(covariates)); colnames(mantel_tests_r) = covariate_names
 mantel_tests_p = matrix(nrow=length(trees), ncol=length(covariates)); colnames(mantel_tests_p) = covariate_names
@@ -848,7 +854,7 @@ for (i in 1:length(covariates))
 		# r = 0.10, 95% HPD = [0.05, 0.13]  for transports
 		# r = 0.16, 95% HPD = [0.13, 0.18]  for SatSQan
 	
-	# 17.2. Multivariate analyses (MRDM+CA)
+	# 16.2. Multivariate analyses (MRDM+CA)
 
 source("CC4log_R_function.r")
 vectorisationAndzTransformation = function(x)
@@ -966,8 +972,8 @@ tree = readAnnotatedNexus("Analysis_2_selected.tree")
 trees = read.nexus("Analysis_2_selected.trees"); Ks_inf_list = list(); Ks_ran_list = list()
 metadata = read.csv("Analysis_1_141220.csv", head=T, sep=";"); cols = list(); variableIDs = list() ; variableNames = list() 
 colours = c("#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99","#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a","#d3d3d3")
-colours = c("red","deepskyblue2","orange","green3","yellow","pink","purple","brown")
-temp = metadata[,"SatSQan"]; temp[temp==0] = NA; cols[[1]] = colours[temp]; variableIDs[[1]] = "SatSQan"; variableNames[[1]] = "Satscan"
+colours = c("red","deepskyblue2","orange","green3","yellow","pink","purple","brown","gray30")
+temp = metadata[,"satscan"]; temp[temp==0] = NA; cols[[1]] = colours[temp]; variableIDs[[1]] = "SatSQan"; variableNames[[1]] = "Satscan"
 temp = metadata[,"transports"]; temp[temp==0] = NA; cols[[2]] = colours[temp]; variableIDs[[2]] = "transports"; variableNames[[2]] = "Transports"
 temp = metadata[,"human_movements"]; temp[temp==0] = NA; cols[[3]] = colours[temp]; variableIDs[[3]] = "human_movements"; variableNames[[3]] = "Human movements"
 
@@ -1038,4 +1044,102 @@ for (i in 1:length(variableNames))
 		# Satscan: K = 1.46, 95% HPD [0.70-2.32], BF = >999
 		# Transports: K = 0.81, 95% HPD [0.36-1.37], BF = 199
 		# Human movements: K = 0.76, 95% HPD [0.51-1.01], BF = >999
+
+# 18. Investigating the impact of herd density and capacity on H3N1 lineages dispersal
+
+data = read.csv("Belgium_herd_data.csv", head=T, sep=";")
+rast1 = raster("WorldPop_pop_raster.tif"); rast1[!is.na(rast1[])] = 0
+rast1 = aggregate(rast1, 30); rast2 = rast1; rast2[!is.na(rast2)] = 0
+points = data.frame(x=as.numeric(data[,"Longitude"]), y=as.numeric(data[,"Latitude"]))
+counts = table(cellFromXY(rast2, points))
+rast2[as.numeric(names(counts))] = counts
+rast3 = rast1; rast3[!is.na(rast3)] = 0
+for (i in 1:dim(data)[1])
+	{
+		if ((!is.na(cellFromXY(rast2, points[i,])))&(!is.na(data[i,"Capacity"])))
+			{
+				rast3[cellFromXY(rast2, points[i,])] = rast3[cellFromXY(rast3, points[i,])]+data[i,"Capacity"]
+			}
+	}
+localTreesDirectory = "Analysis_2_extractions"; rasts = list(); envVariableNames = list()
+rasts[[1]] = rast2; envVariableNames[[1]] = "farm_density"
+rasts[[2]] = rast3; envVariableNames[[2]] = "cumulated_max_capacity"
+municipalities = shapefile("Shapefile_municipalities/Shapefile_post_codes.shp")
+for (i in 1:nberOfExtractionFiles)
+	{
+		tab = read.csv(paste0(localTreesDirectory,"/TreeExtractions_",i,".csv"), head=T)
+		points1 = data.frame(lon=tab[,"startLon"], lat=tab[,"startLat"]); coordinates(points1) = c("lon","lat")
+		points2 = data.frame(lon=tab[,"endLon"], lat=tab[,"endLat"]); coordinates(points2) = c("lon","lat")
+		proj4string(points1) = crs(municipalities); points1 = spTransform(points1, CRS("+init=epsg:4326"))
+		proj4string(points2) = crs(municipalities); points2 = spTransform(points2, CRS("+init=epsg:4326"))
+		tab[,c("startLon","startLat")] = points1@coords; tab[,c("endLon","endLat")] = points2@coords
+		write.csv(tab, paste0("Analysis_2_ext_WGS84/TreeExtractions_",i,".csv"), quote=F, row.names=F)
+	}
+
+	# 18.1. Investigating the impact of herd density and capacity on H3N1 lineages dispersal velocity
+
+localTreesDirectory = "Analysis_2_ext_WGS84"; envVariables = rasts; randomProcedure = 3; nberOfCores = 1
+treesRandomisation(localTreesDirectory, nberOfExtractionFiles, envVariables, randomProcedure, nberOfCores)
+for (i in 1:nberOfExtractionFiles)
+	{
+		obs = read.csv(paste0(localTreesDirectory,"/TreeExtractions_",i,".csv"), header=T)
+		ran = read.csv(paste0(localTreesDirectory,"/TreeRandomisation_",i,".csv"), header=T)
+		envValues_obs = matrix(nrow=dim(obs)[1], ncol=length(envVariables))
+		envValues_ran = matrix(nrow=dim(ran)[1], ncol=length(envVariables))
+		colnames(envValues_obs) = envVariableNames; colnames(envValues_ran) = envVariableNames
+		for (j in 1:length(envVariables))
+			{
+				envValues_obs[,j] = raster::extract(envVariables[[j]], SpatialPoints(obs[,c("endLon","endLat")]))
+				envValues_ran[,j] = raster::extract(envVariables[[j]], SpatialPoints(ran[,c("endLon","endLat")]))
+			}
+		write.csv(envValues_obs, paste0(localTreesDirectory,"/EnvValues_obs_",i,".csv"), row.names=F, quote=F)
+		write.csv(envValues_ran, paste0(localTreesDirectory,"/EnvValues_ran_",i,".csv"), row.names=F, quote=F)
+	}
+BFs = matrix(nrow=length(envVariables), ncol=2)
+row.names(BFs) = envVariableNames; colnames(BFs) = c("lower","higher")
+meanEnvValues_obs_list = list(); meanEnvValues_ran_list = list()
+for (i in 1:length(envVariables))
+	{
+		lowerEnvValues = 0; meanEnvValues_obs_list = list(); meanEnvValues_ran_list = list()
+		meanEnvValues_obs = rep(NA, nberOfExtractionFiles); meanEnvValues_ran = rep(NA, nberOfExtractionFiles)
+		for (j in 1:nberOfExtractionFiles)
+			{
+				meanEnvValues_obs[j] = mean(read.csv(paste0(localTreesDirectory,"/EnvValues_obs_",j,".csv"))[,gsub(".asc","",gsub("-",".",envVariableNames[i]))], na.rm=T)
+				meanEnvValues_ran[j] = mean(read.csv(paste0(localTreesDirectory,"/EnvValues_ran_",j,".csv"))[,gsub(".asc","",gsub("-",".",envVariableNames[i]))], na.rm=T)
+				if (meanEnvValues_obs[j] < meanEnvValues_ran[j]) lowerEnvValues = lowerEnvValues+1				
+			}
+		p = lowerEnvValues/nberOfExtractionFiles; BFs[i,"lower"] = round((p/(1-p))/(0.5/(1-0.5)),1)
+		p = (1-(lowerEnvValues/nberOfExtractionFiles)); BFs[i,"higher"] = round((p/(1-p))/(0.5/(1-0.5)),1)
+		meanEnvValues_obs_list[[i]] = meanEnvValues_obs; meanEnvValues_ran_list[[i]] = meanEnvValues_ran
+	}
+write.csv(BFs, paste0("H3N1_disp_locations_NEW.csv"), quote=F)
+
+	# 18.2. Investigating the impact of herd density and capacity on H3N1 lineages dispersal velocity
+	
+nberOfExtractionFiles = 1000; nberOfRandomisations = 1; randomProcedure = 3
+showingPlots = FALSE; nberOfCores = 1; OS = "Unix"; randomisations = FALSE; fourCells = FALSE
+envVariables = list(); resistances = list(); avgResistances = list(); c = 0
+for (k in c(10,100,1000))
+	{
+		for (i in 1:length(envVariableNames))
+			{
+				c = c+1; rast = rasts[[i]]; rast[rast[]<0] = 0; M = max(rast[], na.rm=T)
+				rast[] = (rast[]*(k/M))+1; names(rast) = paste(envVariableNames[i],"_k",k,sep="")
+				envVariables[[c]] = rast; names(envVariables[[c]]) = paste(envVariableNames[i],"_k",k,sep="")
+				resistances[[c]] = TRUE; avgResistances[[c]] = TRUE
+			}
+		for (i in 1:length(envVariableNames))
+			{
+				c = c+1; rast = rasts[[i]]; rast[rast[]<0] = 0; M = max(rast[], na.rm=T)
+				rast[] = (rast[]*(k/M))+1; names(rast) = paste(envVariableNames[i],"_k",k,sep="")
+				envVariables[[c]] = rast; names(envVariables[[c]]) = paste(envVariableNames[i],"_k",k,sep="")
+				resistances[[c]] = FALSE; avgResistances[[c]] = FALSE
+			}
+	}
+localTreesDirectory = "Analysis_2_ext_WGS84"; pathModel = 2; outputName = paste0("H3N1_LC")
+spreadFactors(localTreesDirectory,nberOfExtractionFiles,envVariables,pathModel,resistances,avgResistances,fourCells,
+			  nberOfRandomisations,randomProcedure,outputName,showingPlots,nberOfCores,OS,simulations=F,randomisations=F)
+localTreesDirectory = "Analysis_2_ext_WGS84"; pathModel = 3; outputName = paste0("H3N1_CS")
+spreadFactors(localTreesDirectory,nberOfExtractionFiles,envVariables,pathModel,resistances,avgResistances,fourCells,
+			  nberOfRandomisations,randomProcedure,outputName,showingPlots,nberOfCores,OS,simulations=F,randomisations=F)	
 
